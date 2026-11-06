@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Valgrind 42 — Native Drop-in Replacement
+# Resolves dynamic location of hook library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOK_LIB="$HOME/.local/lib/valgrind_lib.so"
+
+if [ ! -f "$HOOK_LIB" ]; then
+    if [ -f "$SCRIPT_DIR/../lib/valgrind_lib.so" ]; then
+        HOOK_LIB="$SCRIPT_DIR/../lib/valgrind_lib.so"
+    fi
+fi
+
+# Strip typical 42 valgrind flags
+while [[ $# -gt 0 && "$1" == -* ]]; do
+    case "$1" in
+        --version|-v)
+            if [ $# -eq 1 ]; then
+                echo "valgrind-42 (Native x86_64 / Zen4 / AVX-512 compatible)"
+                exit 0
+            fi
+            shift
+            ;;
+        --help|-h)
+            if [ $# -eq 1 ]; then
+                echo "Usage: valgrind [valgrind-options] your-program [program-options]"
+                exit 0
+            fi
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+if [ $# -eq 0 ]; then
+    echo "valgrind: no program specified"
+    echo "Usage: valgrind [valgrind-options] your-program [program-options]"
+    exit 1
+fi
+
+PID=$$
+echo "==${PID}== Memcheck, a memory error detector (42 Native)"
+echo "==${PID}== Command: $*"
+echo "==${PID}== "
+
+LD_PRELOAD="$HOOK_LIB" "$@"
+exit_code=$?
+
+exit $exit_code

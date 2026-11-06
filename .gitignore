@@ -1,0 +1,4 @@
+lib/
+*.o
+*.so
+.DS_Store
